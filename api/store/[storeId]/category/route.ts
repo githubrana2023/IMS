@@ -9,12 +9,8 @@ export const POST = async (request: NextRequest, { params }: { params: Params })
         const { userId } = await auth()
         const body = await request.json()
         if (!userId) {
-            return NextResponse.json({
-
-                success: false,
-                message: 'User not logged in!!',
-                data: null
-            })
+            const responseJson = createResponse(false, null, 'User not logged in!!')
+            return NextResponse.json(responseJson)
         }
         const existUser = await db.user.findUnique({
             where: {
@@ -22,12 +18,8 @@ export const POST = async (request: NextRequest, { params }: { params: Params })
             }
         })
         if (!existUser) {
-            return NextResponse.json({
-
-                success: false,
-                message: 'User does not exist!!',
-                data: null
-            })
+            const responseJson = createResponse(false, null, 'User does not exist!!')
+            return NextResponse.json(responseJson)
         }
 
         const hasStoreLoggedInUser = await db.store.findUnique({
@@ -37,22 +29,15 @@ export const POST = async (request: NextRequest, { params }: { params: Params })
             }
         })
         if (!hasStoreLoggedInUser) {
-            return NextResponse.json({
-
-                success: false,
-                message: 'User does not have store!!',
-                data: null
-            })
+            const responseJson = createResponse(false, null, 'User does not have store!!')
+            return NextResponse.json(responseJson)
         }
 
         const validation = categorySchema.safeParse(body)
 
         if (!validation.success) {
-            return NextResponse.json({
-                success: false,
-                message: 'Invalid Fields!!',
-                data: null
-            })
+            const responseJson = createResponse(false, null, 'Invalid Fields!!')
+            return NextResponse.json(responseJson)
         }
 
         const { storeId, name } = validation.data
@@ -65,11 +50,9 @@ export const POST = async (request: NextRequest, { params }: { params: Params })
         })
 
         if (existCategory) {
-            return NextResponse.json({
-                success: false,
-                message: `Store '${hasStoreLoggedInUser.storeName}' already has ${existCategory.name} category `,
-                data: null
-            })
+            const message = `Store '${hasStoreLoggedInUser.storeName}' already has ${existCategory.name} category `
+            const responseJson = createResponse(false, null, message)
+            return NextResponse.json(responseJson)
         }
 
         const newCategory = await db.category.create({
@@ -79,11 +62,9 @@ export const POST = async (request: NextRequest, { params }: { params: Params })
             }
         })
 
-        return NextResponse.json({
-            success: false,
-            message: `Category created!!`,
-            data: newCategory
-        })
+        const responseJson = createResponse(true, newCategory, `Category created!!`)
+        return NextResponse.json(responseJson)
+        
     } catch (error) {
         console.log(error)
         return NextResponse.json({
